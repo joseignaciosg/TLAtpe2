@@ -10,25 +10,33 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "utils.h"
 #define PRODSIZE 3
 
 typedef struct Production{
-	char production[PRODSIZE];
+	int symbolsquant;
+	char * production;
 }Production;
 
 typedef struct Production * ProductionADT;
 
 
 /*Constructor-destructor*/
-ProductionADT newProduction(char first, char sec, char third);
-ProductionADT newEmptyProduction();
+ProductionADT newProduction(int num, ...);
 void freeProduction(ProductionADT p);
 
 /*Getters*/
 char getProductionComponent(ProductionADT p, int i);
+int getSymbolQuant(ProductionADT p);
 
 /*Setters*/
+/* Sets a component to already created production, if the
+ * index is less than 0 or greater that the quantity of
+ * symbols of the production, a error should be displayed
+ * p : production
+ * i: index of the component to be added (should start from 0)
+ * comp: component to ve added  */
 void setProductionComponent(ProductionADT p, int i, char comp);
 
 /*Utility*/

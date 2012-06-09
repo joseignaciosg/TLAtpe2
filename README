@@ -1,0 +1,5 @@
+ 
+
+
+to compile ProductionTest (inside Test)
+sudo gcc -g -o test -Wall ProductionTest.c ../classes/Utils.c ../classes/Production.c

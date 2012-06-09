@@ -76,15 +76,15 @@ void init(){
 	setTerminals(g1,term,2);
 
 	/*S-> aA*/
-	p1 = newProduction('S','A','b');
+	p1 = newProduction(3,'S','A','b');
 	/*A-> b*/
-	p2 = newProduction('A','b',LAMDA);
+	p2 = newProduction(3,'A','b',LAMDA);
 	/*B-> aB*/
-	p7 = newProduction('B','B','b');
+	p7 = newProduction(3,'B','B','b');
 	/*A-> bA*/
-	p3 = newProduction('A','B','\\');
+	p3 = newProduction(3,'A','B','\\');
 	/*A-> aB*/
-	p8 = newProduction('A','B','a');
+	p8 = newProduction(3,'A','B','a');
 	/*B-> ab*/
 	//p4 = newProduction('B','c','b');
 	/*A-> bB*/
@@ -139,9 +139,9 @@ void removeProductionsTest(){
 
 void addProductionsTest(){
 	printf("\nTesting Add Productions Method \n");
-	addProduction(getProductions(g1), newProduction('S',LAMDA,'A'));
-	addProduction(getProductions(g1), newProduction('B',LAMDA,'C'));
-	addProduction(getProductions(g1), newProduction('C',LAMDA,'D'));
+	addProduction(getProductions(g1), newProduction(3,'S',LAMDA,'A'));
+	addProduction(getProductions(g1), newProduction(3,'B',LAMDA,'C'));
+	addProduction(getProductions(g1), newProduction(3,'C',LAMDA,'D'));
 	printGrammar(g1);
 	printf("productions quant: %d\n", getQuant(getProductions(g1)));
 }
@@ -170,7 +170,7 @@ void removeOnlyRightTerminalsTest(){
 
 void removeParticularProductionTest(){
 	printf("\nTesting Remove Particular Productions Method \n");
-	removeParticularProduction(getProductions(g1), newProduction('A',LAMDA,'b'));
+	removeParticularProduction(getProductions(g1), newProduction(3,'A',LAMDA,'b'));
 	/*remove non terminals and terminals that are no longer there */
 	actualizeTerminals(g1);
 	actualizeNonTerminals(g1);
@@ -204,10 +204,10 @@ void grammar1Test(){
 	term1[2] = 'c';
 	setTerminals(grammar1,term1,3);
 
-	ProductionADT prod1 = newProduction('A','a','B');
-	ProductionADT prod2 = newProduction('A','c',LAMDA);
-	ProductionADT prod3 = newProduction('B','a','A');
-	ProductionADT prod4 = newProduction('B',LAMDA,'b');
+	ProductionADT prod1 = newProduction(3,'A','a','B');
+	ProductionADT prod2 = newProduction(3,'A','c',LAMDA);
+	ProductionADT prod3 = newProduction(3,'B','a','A');
+	ProductionADT prod4 = newProduction(3,'B',LAMDA,'b');
 	//ProductionsADT productions1 = newProductions(0);
 
 	ProductionsADT productions1 = newProductions(4);
@@ -250,12 +250,12 @@ void grammar4Test(){
 	term1[2] = 'c';
 	setTerminals(grammar4,term1,3);
 
-	ProductionADT prod1 = newProduction('S',LAMDA,'B');
-	ProductionADT prod2 = newProduction('S','a',LAMDA);
-	ProductionADT prod3 = newProduction('B','c','S');
-	ProductionADT prod4 = newProduction('B',LAMDA, LAMDA);
-	ProductionADT prod5 = newProduction('C', 'b', 'C');
-	ProductionADT prod6 = newProduction('C',LAMDA, LAMDA);
+	ProductionADT prod1 = newProduction(3,'S',LAMDA,'B');
+	ProductionADT prod2 = newProduction(3,'S','a',LAMDA);
+	ProductionADT prod3 = newProduction(3,'B','c','S');
+	ProductionADT prod4 = newProduction(3,'B',LAMDA, LAMDA);
+	ProductionADT prod5 = newProduction(3,'C', 'b', 'C');
+	ProductionADT prod6 = newProduction(3,'C',LAMDA, LAMDA);
 	//ProductionsADT productions1 = newProductions(0);
 
 	ProductionsADT productions1 = newProductions(6);
@@ -299,11 +299,11 @@ void grammar5Test(){
 		term1[2] = 'c';
 		setTerminals(grammar5,term1,3);
 
-		ProductionADT prod1 = newProduction('S','B',LAMDA);
-		ProductionADT prod2 = newProduction('S','a',LAMDA);
-		ProductionADT prod3 = newProduction('B','c','C');
-		ProductionADT prod4 = newProduction('B',LAMDA, LAMDA);
-		ProductionADT prod5 = newProduction('C', 'b', 'C');
+		ProductionADT prod1 = newProduction(3,'S','B',LAMDA);
+		ProductionADT prod2 = newProduction(3,'S','a',LAMDA);
+		ProductionADT prod3 = newProduction(3,'B','c','C');
+		ProductionADT prod4 = newProduction(3,'B',LAMDA, LAMDA);
+		ProductionADT prod5 = newProduction(3,'C', 'b', 'C');
 		//ProductionsADT productions1 = newProductions(0);
 
 		ProductionsADT productions1 = newProductions(5);
