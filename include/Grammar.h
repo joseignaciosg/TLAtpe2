@@ -71,8 +71,12 @@ void actualizeProductions(GrammarADT grammar);
 int isRight(GrammarADT grammar);
 char getNewSymbol(GrammarADT grammar);
 
+/*Formalization*/
+void formalize(GrammarADT grammar);
+
 /*Conversion*/
 void generateASDR(GrammarADT grammar);
+
 
 
 #endif /* STRUCTURES_H_ */

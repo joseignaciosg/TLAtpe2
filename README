@@ -1,4 +1,28 @@
- 
+TLA TPE 2 
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+La generación del Analizador Sintáctico Descendente por Retroceso se hace desde una función de Grammar.c:
+void generateASDR(GrammarADT grammar)
+
+Cuando se le pasa una gramática a esta función, primero crea un archivo en "." llamado ASDR.c (si no estaba creado lo crea y si estaba lo reemplaza). Luego va a generar el código fuente del analizador de la forma que está explicado en las teóricas de la cátedra. El código fuente generado cuenta con un main, una función init, una función procesar y procedimientos para cada uno de los símbolos no terminales. Además, este archivo debe ser compilado contra Production.c y Utils.c ya que se vale de estructuras y funciones implementados en estos archivos.
+
+Ahora para se está probando el funcionamiento del generador desde el archivo GrammarTest.c, que generara una gramática y se la pasa a generateASDR. Para compilarlo:
+sudo gcc -g -Wall -fno-stack-protector  GrammarTest.c ../classes/Production.c ../classes/Productions.c ../classes/Grammar.c ../classes/Utils.c -o test
+
+Luego de compilar hay que ejecutar ./test para obtner el código fuente del analizador.
+
+Una vez compilado el ejemplo y generado su analizador, se deberá compilar ASDR.c para obtener el ejecutable del analizador, de la siguente manera:
+sudo gcc -g -Wall ASDR.c ../classes/Production.c  ../classes/Utils.c -o ana
+
+Finalmente para probar si una cadena pertenece o no basta con ejecutar el archivo seguido por la cadena:
+ej:
+./ana aaaahdsd
+
+--------------------------------------------------------------------------------------------------------------------------
+
+
 
 
 to compile ProductionTest (inside Test)

@@ -25,7 +25,19 @@ int  getQuant(ProductionsADT productions){
 }
 ProductionADT getProduction(ProductionsADT productions, int i){
 	return productions->productions[i];
-
+}
+ProductionADT * getProductionsNonTerminal(ProductionsADT productions, char nonTerminal , int * quant){
+	ProductionADT * ans = malloc(sizeof(ProductionADT *));
+	int i,k=0;
+	for(i=0; i<getQuant(productions);i++){
+		ProductionADT p = getProduction(productions,i);
+		char first = getProductionComponent(p,0);
+		if (first == nonTerminal){
+			ans[k++] = p;
+		}
+	}
+	(*quant) = k;
+	return ans;
 }
 
 /*Setters*/

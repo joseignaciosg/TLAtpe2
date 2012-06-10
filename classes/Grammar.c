@@ -7,108 +7,109 @@
 #include "../include/Grammar.h"
 
 /*Constructor-destructor*/
-GrammarADT newGrammar(void){
+GrammarADT newGrammar(void) {
 	GrammarADT grammar;
 	grammar = malloc(sizeof(struct Grammar));
 	/*grammar->productions = malloc(sizeof(ProductionADT));*/
 	return grammar;
 }
-void freeGrammar(GrammarADT grammar){
+void freeGrammar(GrammarADT grammar) {
 	free(grammar->nonterminals);
 	free(grammar->terminals);
 	free(grammar);
 }
 
 /*Getters*/
-char * getTerminals(GrammarADT grammar){
+char * getTerminals(GrammarADT grammar) {
 	return grammar->terminals;
 }
-char * getNonTerminals(GrammarADT grammar){
+char * getNonTerminals(GrammarADT grammar) {
 	return grammar->nonterminals;
 }
-char getDistinguished(GrammarADT grammar){
+char getDistinguished(GrammarADT grammar) {
 	return grammar->distinguished;
 }
-ProductionsADT  getProductions(GrammarADT grammar){
+ProductionsADT getProductions(GrammarADT grammar) {
 	return grammar->productions;
 }
-int getQuantTerminals(GrammarADT grammar){
+int getQuantTerminals(GrammarADT grammar) {
 	return grammar->quantterminals;
 }
-int getQuantNonTerminals(GrammarADT grammar){
+int getQuantNonTerminals(GrammarADT grammar) {
 	return grammar->quantnonterminals;
 }
 
 /*Setters*/
-void setTerminals(GrammarADT grammar, char * terminals, int quant){
-	grammar->terminals = malloc(sizeof(char)*quant);
+void setTerminals(GrammarADT grammar, char * terminals, int quant) {
+	grammar->terminals = malloc(sizeof(char) * quant);
 	memcpy(grammar->terminals, terminals, quant);
 	grammar->quantterminals = quant;
 }
-void setNonTerminals(GrammarADT grammar, char * nonterminals, int quant){
-	grammar->nonterminals = malloc(sizeof(char)*quant);
-	memcpy(grammar->nonterminals,nonterminals, quant);
+void setNonTerminals(GrammarADT grammar, char * nonterminals, int quant) {
+	grammar->nonterminals = malloc(sizeof(char) * quant);
+	memcpy(grammar->nonterminals, nonterminals, quant);
 	grammar->quantnonterminals = quant;
 }
-void setDistinguished(GrammarADT grammar, char distinguished){
+void setDistinguished(GrammarADT grammar, char distinguished) {
 	grammar->distinguished = distinguished;
 }
-void setProductions(GrammarADT grammar,ProductionsADT productions){
+void setProductions(GrammarADT grammar, ProductionsADT productions) {
 	grammar->productions = productions;
 }
 
 /*Utility*/
-void printGrammar(GrammarADT grammar){
+void printGrammar(GrammarADT grammar) {
 	printf("Grammar\n");
-	printf("Distinguished: %c \n",getDistinguished(grammar));
-	int i ;
+	printf("Distinguished: %c \n", getDistinguished(grammar));
+	int i;
 	printf("Terminals: {");
-	for(i=0;i < getQuantTerminals(grammar);i++){
-		printf(" %c ",getTerminals(grammar)[i]);
+	for (i = 0; i < getQuantTerminals(grammar); i++) {
+		printf(" %c ", getTerminals(grammar)[i]);
 	}
 	printf("}\n");
 	printf("Non Terminals: {");
-	for(i=0;i < getQuantNonTerminals(grammar);i++){
-		printf(" %c ",getNonTerminals(grammar)[i]);
+	for (i = 0; i < getQuantNonTerminals(grammar); i++) {
+		printf(" %c ", getNonTerminals(grammar)[i]);
 	}
 	printf("}\n");
 	printProductions(getProductions(grammar));
-	printf("Production Quant %d\n",getQuant(getProductions(grammar)));
+	printf("Production Quant %d\n", getQuant(getProductions(grammar)));
 	return;
 }
 
-void removeUnitaryProductions(GrammarADT grammar){
-	ProductionsADT  productions = getProductions(grammar);
-	int i,j,k, productionquant = getQuant(productions), unitaryquant = 0, lastunitaryquant = 0;
+void removeUnitaryProductions(GrammarADT grammar) {
+	ProductionsADT productions = getProductions(grammar);
+	int i, j, k, productionquant = getQuant(productions), unitaryquant = 0,
+			lastunitaryquant = 0;
 	/*auxiliar array for unitary productions*/
 	char * unitaries = NULL;
 	/*iterate over productions and determine first unitaries:
 	 * the productions that have only one non terminal symbol
 	 * on the right side */
-	for (i=0; i< productionquant; i++){
-		char first = getProductionComponent(getProduction(productions,i),0);
-		char sec = getProductionComponent(getProduction(productions,i),1);
-		char third = getProductionComponent(getProduction(productions,i),2);
-		if ( isNonTerminal(sec) && third == LAMDA ){
-			addPair(&unitaries,&unitaryquant,first, sec);
-		}else if( isNonTerminal(third) && sec == LAMDA){
-			addPair(&unitaries,&unitaryquant,first, third);
+	for (i = 0; i < productionquant; i++) {
+		char first = getProductionComponent(getProduction(productions, i), 0);
+		char sec = getProductionComponent(getProduction(productions, i), 1);
+		char third = getProductionComponent(getProduction(productions, i), 2);
+		if (isNonTerminal(sec) && third == LAMDA) {
+			addPair(&unitaries, &unitaryquant, first, sec);
+		} else if (isNonTerminal(third) && sec == LAMDA) {
+			addPair(&unitaries, &unitaryquant, first, third);
 		}
 	}
 	/*iterate over unitaries, adding the closure*/
-	while(unitaryquant != lastunitaryquant){
+	while (unitaryquant != lastunitaryquant) {
 		lastunitaryquant = unitaryquant;
-		for (i=0; i<unitaryquant ; i+=2){
+		for (i = 0; i < unitaryquant; i += 2) {
 			char first1 = unitaries[i];
-			char sec1 = unitaries[i+1];
-			for (j=0; j<unitaryquant ; j+=2){
+			char sec1 = unitaries[i + 1];
+			for (j = 0; j < unitaryquant; j += 2) {
 				char first2 = unitaries[j];
-				char sec2 = unitaries[j+1];
+				char sec2 = unitaries[j + 1];
 				/*(A,B)(B,C)-> (A,C)*/
-				if (sec1 == first2 ){
-					if (!containsPair(unitaries,unitaryquant,first1,sec2) &&
-							first1 != sec2 ){ /*no sense in adding (A,A) unitaries*/
-						addPair(&unitaries,&unitaryquant,first1,sec2);
+				if (sec1 == first2) {
+					if (!containsPair(unitaries, unitaryquant, first1, sec2)
+							&& first1 != sec2) { /*no sense in adding (A,A) unitaries*/
+						addPair(&unitaries, &unitaryquant, first1, sec2);
 					}
 				}
 			}
@@ -118,31 +119,32 @@ void removeUnitaryProductions(GrammarADT grammar){
 	//printByPairs(unitaries,unitaryquant);
 	//printf("unitaries quant: %d\n\n", unitaryquant/2);
 	/*create the new productions and remove the unitaries*/
-	for(i=0; i<productionquant; i++){
-		ProductionADT p1 = getProduction(productions,i);
-		if ( isUnitary(p1) ){
-			char first1 = getProductionComponent(p1,0);
-			char sec1 = getProductionComponent(p1,1);
-			char third1 = getProductionComponent(p1,2);
-			for(j=0;j<unitaryquant;j+=2){
+	for (i = 0; i < productionquant; i++) {
+		ProductionADT p1 = getProduction(productions, i);
+		if (isUnitary(p1)) {
+			char first1 = getProductionComponent(p1, 0);
+			char sec1 = getProductionComponent(p1, 1);
+			char third1 = getProductionComponent(p1, 2);
+			for (j = 0; j < unitaryquant; j += 2) {
 				char uni1 = unitaries[j];
-				char uni2 = unitaries[j+1];
+				char uni2 = unitaries[j + 1];
 				//A->B and (A,B) (unitary production is localized)
-				if ((first1 == uni1) && (sec1 == uni2 || third1 == uni2 )){
-					for(k=0; k<productionquant; k++ ){
-						ProductionADT p2 = getProduction(productions,k);
-						char first2 = getProductionComponent(p2,0);
-						char sec2 = getProductionComponent(p2,1);
-						char third2 = getProductionComponent(p2,2);
-						if(!isUnitary(p2)){
-							if(first2 == uni2 ){
-								addProduction(productions,newProduction(first1,sec2,third2));
+				if ((first1 == uni1) && (sec1 == uni2 || third1 == uni2)) {
+					for (k = 0; k < productionquant; k++) {
+						ProductionADT p2 = getProduction(productions, k);
+						char first2 = getProductionComponent(p2, 0);
+						char sec2 = getProductionComponent(p2, 1);
+						char third2 = getProductionComponent(p2, 2);
+						if (!isUnitary(p2)) {
+							if (first2 == uni2) {
+								addProduction(productions,
+										newProduction(first1, sec2, third2));
 							}
 						}
 					}
 				}
 			}
-			removeParticularProduction(productions,p1);
+			removeParticularProduction(productions, p1);
 			free(p1);
 		}
 	}
@@ -151,38 +153,50 @@ void removeUnitaryProductions(GrammarADT grammar){
 	actualizeNonTerminals(grammar);
 	actualizeProductions(grammar);
 
-
-
 }
 
-
-void removeUnproductiveProductions(GrammarADT grammar){
-	ProductionsADT  productions = getProductions(grammar);
-	int i, quantproductions = getQuant(productions), productivequant=0,lastproductivequant=-1;
+void removeUnproductiveProductions(GrammarADT grammar) {
+	ProductionsADT productions = getProductions(grammar);
+	int i, quantproductions = getQuant(productions), productivequant = 0,
+			lastproductivequant = -1;
 	char * productives = NULL;
 	char * aux1 = NULL;
-	while(productivequant != lastproductivequant){
+	while (productivequant != lastproductivequant) {
 		lastproductivequant = productivequant;
-		for( i=0; i< quantproductions;i++ ){
-			ProductionADT p1 = getProduction(productions,i);
-			char first1 = getProductionComponent(p1,0);
-			char sec1 = getProductionComponent(p1,1);
-			char third1 = getProductionComponent(p1,2);
-			if ( !containsChar(productives,productivequant,first1)  ){
-				if ( ( sec1 == LAMDA && third1 == LAMDA ) || /*lamda*/
-					 (isTerminal(sec1) && isTerminal(third1) ) || /*both terminal*/
-					 (   isTerminal(sec1) && third1 == LAMDA   ) || /*one terminal*/
-					 (   isTerminal(third1) && sec1 == LAMDA   ) ||
-					 /*one terminal and one productive*/
-					 (isTerminal(sec1) && ( isNonTerminal(third1) && containsChar(productives,productivequant,third1) ) ) ||
-					 (isTerminal(third1) && ( isNonTerminal(sec1) && containsChar(productives,productivequant,sec1) ) ) ||
-					 ( sec1 == LAMDA && ( isNonTerminal(third1) && containsChar(productives,productivequant,third1) ) ) ||
-					 ( third1 == LAMDA && ( isNonTerminal(sec1) && containsChar(productives,productivequant,sec1) ) )){
-					 if ( ( aux1 = realloc(productives, sizeof(char)*(productivequant+1)) ) == NULL ){
-							fprintf(stderr, "Error doing realloc \n");
-					 }
-					 productives = aux1;
-					 productives[productivequant++] = first1;
+		for (i = 0; i < quantproductions; i++) {
+			ProductionADT p1 = getProduction(productions, i);
+			char first1 = getProductionComponent(p1, 0);
+			char sec1 = getProductionComponent(p1, 1);
+			char third1 = getProductionComponent(p1, 2);
+			if (!containsChar(productives, productivequant, first1)) {
+				if ((sec1 == LAMDA && third1 == LAMDA) || /*lamda*/
+				(isTerminal(sec1) && isTerminal(third1)) || /*both terminal*/
+				(isTerminal(sec1) && third1 == LAMDA) || /*one terminal*/
+				(isTerminal(third1) && sec1 == LAMDA)
+						||
+						/*one terminal and one productive*/
+						(isTerminal(sec1)
+								&& (isNonTerminal(third1)
+										&& containsChar(productives,
+												productivequant, third1)))
+						|| (isTerminal(third1)
+								&& (isNonTerminal(sec1)
+										&& containsChar(productives,
+												productivequant, sec1)))
+						|| (sec1 == LAMDA
+								&& (isNonTerminal(third1)
+										&& containsChar(productives,
+												productivequant, third1)))
+						|| (third1 == LAMDA
+								&& (isNonTerminal(sec1)
+										&& containsChar(productives,
+												productivequant, sec1)))) {
+					if ((aux1 = realloc(productives,
+							sizeof(char) * (productivequant + 1))) == NULL) {
+						fprintf(stderr, "Error doing realloc \n");
+					}
+					productives = aux1;
+					productives[productivequant++] = first1;
 				}
 			}
 		}
@@ -193,64 +207,68 @@ void removeUnproductiveProductions(GrammarADT grammar){
 	actualizeProductions(grammar);
 }
 
-
-
-void removeUnreachableProductions(GrammarADT grammar){
-	ProductionsADT  productions = getProductions(grammar);
-	int i, quantproductions = getQuant(productions), reachablesquant=0,lastreachablesquant=0;
+void removeUnreachableProductions(GrammarADT grammar) {
+	ProductionsADT productions = getProductions(grammar);
+	int i, quantproductions = getQuant(productions), reachablesquant = 0,
+			lastreachablesquant = 0;
 	char * reachables = malloc(sizeof(char));
 	char * aux1 = NULL;
 	/*starts only with distinguished symbol, if it is in the current productions*/
-	if(inCurrentProductions(productions,getDistinguished(grammar))){
+	if (inCurrentProductions(productions, getDistinguished(grammar))) {
 		reachables[reachablesquant++] = getDistinguished(grammar);
 	}
 	/*until something the quantity of reachables varies*/
-	while (reachablesquant != lastreachablesquant){
+	while (reachablesquant != lastreachablesquant) {
 		lastreachablesquant = reachablesquant;
-		for(i=0; i<quantproductions; i++){
-			char first = getProductionComponent(getProduction(productions,i),0);
-			char sec = getProductionComponent(getProduction(productions,i),1);
-			char third = getProductionComponent(getProduction(productions,i),2);
+		for (i = 0; i < quantproductions; i++) {
+			char first = getProductionComponent(getProduction(productions, i),
+					0);
+			char sec = getProductionComponent(getProduction(productions, i), 1);
+			char third = getProductionComponent(getProduction(productions, i),
+					2);
 			/*if the symbol of the left is contained in the reachables, the non terminal
 			 * symbols of the right must be added*/
-			if (containsChar(reachables,reachablesquant,first)){
+			if (containsChar(reachables, reachablesquant, first)) {
 				/*if the second symbol is nonterminal and is not yet in the
 				 * reachable list, it must be added*/
-				if ( isNonTerminal( sec ) &&
-						!containsChar(reachables,reachablesquant,sec)){
-					 if ( ( aux1 = realloc(reachables, sizeof(char)*(reachablesquant+1)) ) == NULL ){
+				if (isNonTerminal(sec)
+						&& !containsChar(reachables, reachablesquant, sec)) {
+					if ((aux1 = realloc(reachables,
+							sizeof(char) * (reachablesquant + 1))) == NULL) {
 						fprintf(stderr, "Error doing realloc \n");
-					 }
-					 reachables = aux1;
-					 reachables[reachablesquant++] = sec;
+					}
+					reachables = aux1;
+					reachables[reachablesquant++] = sec;
 				}/*if the third symbol is nonterminal and is not yet in the
 				 * reachable list, it must be added*/
-				else if( isNonTerminal(third) &&
-						!containsChar(reachables,reachablesquant,third) ){
-					 if ( (aux1 = realloc(reachables, sizeof(char)*(reachablesquant+1)) ) == NULL ){
+				else if (isNonTerminal(third)
+						&& !containsChar(reachables, reachablesquant, third)) {
+					if ((aux1 = realloc(reachables,
+							sizeof(char) * (reachablesquant + 1))) == NULL) {
 						fprintf(stderr, "Error doing realloc \n");
-					 }
-					 reachables = aux1;
-					 reachables[reachablesquant++] = third;
+					}
+					reachables = aux1;
+					reachables[reachablesquant++] = third;
 				}
 			}
 		}
 	}
 	/*TODO: delete debug printf*/
 	printf("\nReachables!!: ");
-	printArray(reachables,reachablesquant);
-	int symsToRemovequant=0;
+	printArray(reachables, reachablesquant);
+	int symsToRemovequant = 0;
 	/*remove the unreachable productions*/
 	/*If the quantity of reachables is equal to the quantity of nonterminals,
 	 * nothing should be removed*/
-	if (reachablesquant != getQuantNonTerminals(grammar)){
+	if (reachablesquant != getQuantNonTerminals(grammar)) {
 		char * symsToRemove = NULL;
 		symsToRemovequant = getDifferents(getNonTerminals(grammar),
-				getQuantNonTerminals(grammar) ,reachables, reachablesquant, &symsToRemove);
+				getQuantNonTerminals(grammar), reachables, reachablesquant,
+				&symsToRemove);
 		printf("\nTO REMOVE:");
-		printArray(symsToRemove,symsToRemovequant );
-		for(i=0; i<symsToRemovequant; i++){
-			removeProduction(productions,symsToRemove[i]);
+		printArray(symsToRemove, symsToRemovequant);
+		for (i = 0; i < symsToRemovequant; i++) {
+			removeProduction(productions, symsToRemove[i]);
 		}
 	}
 	/*remove non terminals and terminals that are no longer there */
@@ -260,8 +278,7 @@ void removeUnreachableProductions(GrammarADT grammar){
 
 }
 
-
-void removeOnlyRightTerminals(GrammarADT grammar){
+void removeOnlyRightTerminals(GrammarADT grammar) {
 	int j;
 	int found = FALSE;
 	char newsymbol;
@@ -269,19 +286,19 @@ void removeOnlyRightTerminals(GrammarADT grammar){
 	ProductionsADT productions = getProductions(grammar);
 
 	/*search for A->a like productions*/
-	for(j=0; j< getQuant(getProductions(grammar)); j++){
-		ProductionADT p = getProduction(productions,j);
-		char sec =  getProductionComponent(p,1);
-		char third =  getProductionComponent(p,2);
-		if(	( isTerminal(sec) && third == LAMDA ) ||
-			( isTerminal(third) && sec == LAMDA ) ) {
+	for (j = 0; j < getQuant(getProductions(grammar)); j++) {
+		ProductionADT p = getProduction(productions, j);
+		char sec = getProductionComponent(p, 1);
+		char third = getProductionComponent(p, 2);
+		if ((isTerminal(sec) && third == LAMDA)
+				|| (isTerminal(third) && sec == LAMDA)) {
 			found = TRUE;
 			break;
 		}
 	}
 	/*if there are not productions with only terminals in the right side
 	 * ,go away*/
-	if(!found){
+	if (!found) {
 		return;
 	}
 	/*search for the new symbol to insert*/
@@ -290,8 +307,8 @@ void removeOnlyRightTerminals(GrammarADT grammar){
 	/*add new symbol to the nonterminals array*/
 	char * term = getNonTerminals(grammar);
 	int termquant = getQuantNonTerminals(grammar);
-	char * aux = realloc(term, (termquant+1)*sizeof(char));
-	if(aux == NULL){
+	char * aux = realloc(term, (termquant + 1) * sizeof(char));
+	if (aux == NULL) {
 		printf("Error: Not enought memory\n");
 		exit(1);
 	}
@@ -300,36 +317,37 @@ void removeOnlyRightTerminals(GrammarADT grammar){
 	termquant++;
 	setNonTerminals(grammar, term, termquant);
 
-	int isright = isRight(grammar) ;
+	int isright = isRight(grammar);
 	int productionquant = getQuant(getProductions(grammar));
 	/*create the new productions with the new symbol*/
-	for(j=0; j< productionquant ; j++){
-		ProductionADT p = getProduction(getProductions(grammar),j);
-		char sec = getProductionComponent(p,1);
-		char third = getProductionComponent(p,2);
+	for (j = 0; j < productionquant; j++) {
+		ProductionADT p = getProduction(getProductions(grammar), j);
+		char sec = getProductionComponent(p, 1);
+		char third = getProductionComponent(p, 2);
 		/*is the production have only one terminal symbol on the right side */
-		if ( isTerminal(sec) && third == LAMDA ){
+		if (isTerminal(sec) && third == LAMDA) {
 			/*if the grammar is right sided the new symbol should be
-			* added to the right*/
-			if( isright ){
-				setProductionComponent(p, 1, sec );
+			 * added to the right*/
+			if (isright) {
+				setProductionComponent(p, 1, sec);
 				setProductionComponent(p, 2, newsymbol);
-			}else{
-				setProductionComponent(p, 2, sec );
+			} else {
+				setProductionComponent(p, 2, sec);
 				setProductionComponent(p, 1, newsymbol);
 			}
-		}else if( isTerminal(third) && sec == LAMDA){
-			if( isright ){
-				setProductionComponent(p, 1, third );
+		} else if (isTerminal(third) && sec == LAMDA) {
+			if (isright) {
+				setProductionComponent(p, 1, third);
 				setProductionComponent(p, 2, newsymbol);
-			}else{
+			} else {
 				setProductionComponent(p, 1, newsymbol);
-				setProductionComponent(p, 2, third );
+				setProductionComponent(p, 2, third);
 			}
 		}
 	}
 
-	addProduction(getProductions(grammar), newProduction(newsymbol,LAMDA,LAMDA));
+	addProduction(getProductions(grammar),
+			newProduction(newsymbol, LAMDA, LAMDA));
 
 	/*remove non terminals and terminals that are no longer there */
 	actualizeTerminals(grammar);
@@ -337,28 +355,28 @@ void removeOnlyRightTerminals(GrammarADT grammar){
 	return;
 }
 
-void convertToRight(GrammarADT grammar){
+void convertToRight(GrammarADT grammar) {
 
 	int i;
 	int ml = FALSE;
 	char oldistiguished = getDistinguished(grammar);
 	/*if the grammar is already right there is no
 	 * reason to convert it*/
-	if ( isRight(grammar) ){
+	if (isRight(grammar)) {
 		return;
 	}
 
 	ProductionsADT productions = getProductions(grammar);
 	int quantproductions = getQuant(productions);
 
-	for(i = 0; i < quantproductions ; i++){
+	for (i = 0; i < quantproductions; i++) {
 		ProductionADT p1 = getProduction(productions, i);
 		char first = getProductionComponent(p1, 0);
 		char sec = getProductionComponent(p1, 1);
 		char third = getProductionComponent(p1, 2);
-		if(isNonTerminal(sec)){
-			addProduction(productions, newProduction(sec , third, first));
-			removeParticularProduction(productions,p1);
+		if (isNonTerminal(sec)) {
+			addProduction(productions, newProduction(sec, third, first));
+			removeParticularProduction(productions, p1);
 		}
 	}
 	setProductions(grammar, productions);
@@ -366,41 +384,41 @@ void convertToRight(GrammarADT grammar){
 	/*a new nonTerminal should be created ,
 	 * that joint the non terminals that were joined to lambda*/
 	char * leftnontermssymbols = NULL;
-	int size=0;
-	for(i=0; i < quantproductions; i++){
+	int size = 0;
+	for (i = 0; i < quantproductions; i++) {
 		ProductionADT p1 = getProduction(productions, i);
 		char first = getProductionComponent(p1, 0);
 		char sec = getProductionComponent(p1, 1);
 		char third = getProductionComponent(p1, 2);
-		if(sec == LAMDA && third == LAMDA){
-			addChar(&leftnontermssymbols,&size,first);
+		if (sec == LAMDA && third == LAMDA) {
+			addChar(&leftnontermssymbols, &size, first);
 		}
 	}
 	/*get a new distiguished symbol*/
 	char newsymbol = getNewSymbol(grammar);
-	setDistinguished(grammar,newsymbol);
+	setDistinguished(grammar, newsymbol);
 	/*generate new unitary productions*/
-	for(i=0; i<size; i++){
-		ProductionADT newprod = newProduction(newsymbol,leftnontermssymbols[i],LAMDA);
+	for (i = 0; i < size; i++) {
+		ProductionADT newprod = newProduction(newsymbol, leftnontermssymbols[i],
+				LAMDA);
 		//printProduction(newprod);
 		addProduction(productions, newprod);
 	}
 	/*remove all old lambda productions*/
-	for(i=0; i<getQuant(productions); i++){
-		ProductionADT p = getProduction(productions,i);
-		char sec = getProductionComponent(p,1);
-		char third = getProductionComponent(p,2);
+	for (i = 0; i < getQuant(productions); i++) {
+		ProductionADT p = getProduction(productions, i);
+		char sec = getProductionComponent(p, 1);
+		char third = getProductionComponent(p, 2);
 		/*if it is a lamda productions : delete*/
-		if( sec == LAMDA && third == LAMDA ){
-			removeParticularProduction(productions,p);
+		if (sec == LAMDA && third == LAMDA) {
+			removeParticularProduction(productions, p);
 		}
 	}
-	if(!ml){
+	if (!ml) {
 		addProduction(productions, newProduction(oldistiguished, LAMDA, LAMDA));
 	}
 
-	setProductions(grammar,productions);
-
+	setProductions(grammar, productions);
 
 	/*remove non terminals and terminals that are no longer there */
 	actualizeTerminals(grammar);
@@ -408,9 +426,9 @@ void convertToRight(GrammarADT grammar){
 	actualizeProductions(grammar);
 }
 
-void toFile(GrammarADT grammar){
+void toFile(GrammarADT grammar) {
 	FILE * fp = fopen("grammar.gr", "w");
-	if(fp == NULL){
+	if (fp == NULL) {
 		printf("Error: File could not be created\n");
 		fclose(fp);
 		return;
@@ -420,23 +438,31 @@ void toFile(GrammarADT grammar){
 
 	int i;
 
-	for(i = 0; i < getQuantNonTerminals(grammar); i++)	{
-		fprintf(fp, "%c%s", getNonTerminals(grammar)[i], (i == getQuantNonTerminals(grammar)-1?"}":", "));
+	for (i = 0; i < getQuantNonTerminals(grammar); i++) {
+		fprintf(fp, "%c%s", getNonTerminals(grammar)[i],
+				(i == getQuantNonTerminals(grammar) - 1 ? "}" : ", "));
 	}
 
 	fprintf(fp, ", {");
 
-	for(i = 0; i < getQuantTerminals(grammar); i++)	{
-		fprintf(fp, "%c%s", getTerminals(grammar)[i], (i == getQuantTerminals(grammar)-1?"}":", "));
+	for (i = 0; i < getQuantTerminals(grammar); i++) {
+		fprintf(fp, "%c%s", getTerminals(grammar)[i],
+				(i == getQuantTerminals(grammar) - 1 ? "}" : ", "));
 	}
 
 	fprintf(fp, ", %c, {", getDistinguished(grammar));
 
-	for(i = 0; i < getQuant(getProductions(grammar)); i++){
-		fprintf(fp, "%c -> %c%c%s", getProductionComponent(getProduction(getProductions(grammar), i), 0),
-				getProductionComponent(getProduction(getProductions(grammar), i), 1),
-				getProductionComponent(getProduction(getProductions(grammar), i), 2),
-				(i == getQuant(getProductions(grammar))-1? "}": ", "));
+	for (i = 0; i < getQuant(getProductions(grammar)); i++) {
+		fprintf(
+				fp,
+				"%c -> %c%c%s",
+				getProductionComponent(
+						getProduction(getProductions(grammar), i), 0),
+				getProductionComponent(
+						getProduction(getProductions(grammar), i), 1),
+				getProductionComponent(
+						getProduction(getProductions(grammar), i), 2),
+				(i == getQuant(getProductions(grammar)) - 1 ? "}" : ", "));
 	}
 
 	fprintf(fp, ")");
@@ -445,79 +471,83 @@ void toFile(GrammarADT grammar){
 
 }
 
-void actualizeTerminals(GrammarADT grammar){
+void actualizeTerminals(GrammarADT grammar) {
 	int termquant = getQuantTerminals(grammar);
-	char * termsfounded = NULL ;
-	int termsfoundedsize =0;
+	char * termsfounded = NULL;
+	int termsfoundedsize = 0;
 	ProductionsADT productions = getProductions(grammar);
-	int productionquant = getQuant(productions),i;
+	int productionquant = getQuant(productions), i;
 	/*detect current terminals*/
-	for (i=0; i<productionquant; i++){
-		ProductionADT p = getProduction(productions,i);
-		char sec = getProductionComponent(p,1);
-		char third = getProductionComponent(p,2);
-		if (isTerminal(sec) && !containsChar(termsfounded,termsfoundedsize,sec) ){
+	for (i = 0; i < productionquant; i++) {
+		ProductionADT p = getProduction(productions, i);
+		char sec = getProductionComponent(p, 1);
+		char third = getProductionComponent(p, 2);
+		if (isTerminal(sec)
+				&& !containsChar(termsfounded, termsfoundedsize, sec)) {
 			addChar(&termsfounded, &termsfoundedsize, sec);
 		}
-		if(isTerminal(third) && !containsChar(termsfounded,termsfoundedsize,third)){
+		if (isTerminal(third)
+				&& !containsChar(termsfounded, termsfoundedsize, third)) {
 			addChar(&termsfounded, &termsfoundedsize, third);
 		}
 	}
 	/*actualize terminals*/
-	if( termsfoundedsize != termquant ){
+	if (termsfoundedsize != termquant) {
 		/*there are less current terminals*/
-		setTerminals(grammar,termsfounded,termsfoundedsize);
+		setTerminals(grammar, termsfounded, termsfoundedsize);
 	}
 }
 
-void actualizeNonTerminals(GrammarADT grammar){
+void actualizeNonTerminals(GrammarADT grammar) {
 	int nontermquant = getQuantTerminals(grammar);
-	char * nontermsfounded = NULL ;
-	int nontermsfoundedsize =0;
+	char * nontermsfounded = NULL;
+	int nontermsfoundedsize = 0;
 	ProductionsADT productions = getProductions(grammar);
-	int productionquant = getQuant(productions),i;
+	int productionquant = getQuant(productions), i;
 	/*detect current non terminals*/
-	for (i=0; i<productionquant; i++){
-		ProductionADT p = getProduction(productions,i);
-		char first = getProductionComponent(p,0);
-		char sec = getProductionComponent(p,1);
-		char third = getProductionComponent(p,2);
-		if (isNonTerminal(first) && !containsChar(nontermsfounded,nontermsfoundedsize,first) ){
+	for (i = 0; i < productionquant; i++) {
+		ProductionADT p = getProduction(productions, i);
+		char first = getProductionComponent(p, 0);
+		char sec = getProductionComponent(p, 1);
+		char third = getProductionComponent(p, 2);
+		if (isNonTerminal(first)
+				&& !containsChar(nontermsfounded, nontermsfoundedsize, first)) {
 			addChar(&nontermsfounded, &nontermsfoundedsize, first);
 		}
-		if (isNonTerminal(sec) && !containsChar(nontermsfounded,nontermsfoundedsize,sec) ){
+		if (isNonTerminal(sec)
+				&& !containsChar(nontermsfounded, nontermsfoundedsize, sec)) {
 			addChar(&nontermsfounded, &nontermsfoundedsize, sec);
 		}
-		if(isNonTerminal(third) && !containsChar(nontermsfounded,nontermsfoundedsize,third)){
+		if (isNonTerminal(third)
+				&& !containsChar(nontermsfounded, nontermsfoundedsize, third)) {
 			addChar(&nontermsfounded, &nontermsfoundedsize, third);
 		}
 	}
 	/*actualize non terminals*/
-	if( nontermsfoundedsize != nontermquant ){
+	if (nontermsfoundedsize != nontermquant) {
 		/*there are less current non terminals*/
-		setNonTerminals(grammar,nontermsfounded,nontermsfoundedsize);
+		setNonTerminals(grammar, nontermsfounded, nontermsfoundedsize);
 	}
 
 }
 
-
 /*should be called after actualizeNonterminals*/
-void actualizeProductions(GrammarADT grammar){
+void actualizeProductions(GrammarADT grammar) {
 	ProductionsADT productions = getProductions(grammar);
 	int quantproductions = getQuant(productions);
 	int quantnonterminals = getQuantNonTerminals(grammar);
 	char * nonterminals = getNonTerminals(grammar);
-	int i,j;
+	int i, j;
 	/* por cada no terminal, si no exite ninguna producion que lo tenga
 	 * en su parte izquierda, hay que elimicar la producion
 	 */
 	int contained = FALSE;
-	for ( i=0; i<quantnonterminals; i++ ){
+	for (i = 0; i < quantnonterminals; i++) {
 		contained = FALSE;
-		for (j=0; j<quantproductions; j++ ){
-			ProductionADT p = getProduction(productions,j);
-			char first = getProductionComponent(p,0);
-			if( nonterminals[i] == first ){
+		for (j = 0; j < quantproductions; j++) {
+			ProductionADT p = getProduction(productions, j);
+			char first = getProductionComponent(p, 0);
+			if (nonterminals[i] == first) {
 				contained = TRUE;
 				break;
 			}
@@ -525,38 +555,39 @@ void actualizeProductions(GrammarADT grammar){
 		/* if the symbol is no longer in the left of a production ->
 		 * all the production containing that symbol should be deleted
 		 */
-		if (!contained){
+		if (!contained) {
 			removeProductionsContaining(productions, nonterminals[i]);
 		}
 	}
 }
 
-int isRight(GrammarADT grammar){
+int isRight(GrammarADT grammar) {
 	ProductionsADT productions = getProductions(grammar);
 	int n = getQuant(productions);
 	int i;
-	for (i=0; i<n; i++){
-		ProductionADT p = getProduction(productions,i);
-		char sec = getProductionComponent(p,1);
-		char third = getProductionComponent(p,2);
+	for (i = 0; i < n; i++) {
+		ProductionADT p = getProduction(productions, i);
+		char sec = getProductionComponent(p, 1);
+		char third = getProductionComponent(p, 2);
 		/*if there is a production like A->Ba, it is a left sided grammar*/
-		if (isNonTerminal(sec) && isTerminal(third)){
+		if (isNonTerminal(sec) && isTerminal(third)) {
 			return 0;
 		}
 	}
 	return 1;
 }
 
-char getNewSymbol(GrammarADT grammar){
+char getNewSymbol(GrammarADT grammar) {
 	char abc[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	int l = strlen(abc);
 	char newsymbol;
 	int nontermquant = getQuantNonTerminals(grammar);
-	char * nonterm  = getNonTerminals(grammar);
-	int i,j;
-	for(i = 0; i<l; i++){
-		for(j = 0; j< nontermquant && nonterm[j] != abc[i]; j++);
-		if(j==nontermquant){
+	char * nonterm = getNonTerminals(grammar);
+	int i, j;
+	for (i = 0; i < l; i++) {
+		for (j = 0; j < nontermquant && nonterm[j] != abc[i]; j++)
+			;
+		if (j == nontermquant) {
 			newsymbol = abc[i];
 			break;
 		}
@@ -564,40 +595,260 @@ char getNewSymbol(GrammarADT grammar){
 	return newsymbol;
 }
 
-static void mainGenerator(GrammarADT grammar, FILE * file){
-
-	char distinguished = getDistinguished(grammar);
-	char * line1 = "if(PN1(t,w) && (t == sizeof(w)-1) ){";
-	char * line2 = "return true;";
-	char * line3 = "}else{return false;}";
-	fwrite(line1, sizeof(line1[0]), sizeof(line1), file);
-	fwrite(line2, sizeof(line2[0]), sizeof(line2), file);
-	fwrite(line3, sizeof(line3[0]), sizeof(line3), file);
-}
-static void processGenerator(GrammarADT grammar, FILE * file){
-
-}
-
-static void proceduresGenerator(GrammarADT grammar, FILE * file){
-
-}
-
-
 
 /*Conversion*/
-void generateASDR(GrammarADT grammar){
+void generateASDR(GrammarADT grammar) {
 
 	FILE *file;
 	char * name = "ASDR.c";
-	file = fopen(name,"a+");
-
+	file = fopen(name, "a+");
+	if(!file) {
+		remove(name);
+		file = fopen(name, "a+");
+	}
+	char ** lines = malloc(sizeof(char*) * 500);
+	char * nonterminals = getNonTerminals(grammar);
+	int nonterminalsquant = getQuantNonTerminals(grammar);
+	ProductionsADT productions = getProductions(grammar);
 	int i;
+	ProductionADT ** prodsbyNonTerm = malloc(
+			sizeof(ProductionADT*) * nonterminalsquant);
+	int * prodsSizes = malloc(sizeof(int) * nonterminalsquant);
+	for ( i = 0; i < nonterminalsquant; i++) {
+		prodsbyNonTerm[i] = getProductionsNonTerminal(productions,
+				nonterminals[i], &(prodsSizes[i]));
+	}
+
+	printf("%s\n", "STARTING FILE CREATION");
+
+	int line = 0;
 	/*main generator*/
-	if(file){
-		mainGenerator(grammar, file);
-		processGenerator(grammar, file);
-		proceduresGenerator(grammar, file);
+	if (file) {
+
+		printf("%s", "------------generating headers---------------\n");
+
+		lines[line++] = "#define  TRUE 1";
+		lines[line++] = "#define  FALSE 0";
+		lines[line++] = "#include <stdio.h>";
+		lines[line++] = "#include <stdlib.h>";
+		lines[line++] = "#include <string.h>";
+		lines[line++] = "#include \"../include/Production.h\"";
+		lines[line++] = "#include \"../include/utils.h\"";
+
+		int j;
+		for (j = 0; j < getQuantNonTerminals(grammar); j++) {
+			char buff1[50], buff2[50], buff3[50];
+			int q1, q2, q3;
+			q1 = sprintf(buff1, "ProductionADT * prods%d;",j);
+			q2 = sprintf(buff2, "int prods%dquant;",j);
+			q3 = sprintf(buff3, "int pn%d(int * t, char * w);",j);
+			lines[line] = malloc(sizeof(char)*q1);
+			memcpy(lines[line++], buff1, q1);
+			lines[line] = malloc(sizeof(char)*q2);
+			memcpy(lines[line++], buff2, q2);
+			lines[line] = malloc(sizeof(char)*q3);
+			memcpy(lines[line++], buff3, q3);
+		}
+		lines[line++] = "int procesar(ProductionADT p, char * w, int * t);";
+		lines[line++] = "void init();";
+
+		printf("%s", "------------generating main---------------\n");
+
+		/*main*/
+		lines[line++] = "";
+		lines[line++] = "int main(int argc, char *argv[]) {";
+		lines[line++] = "if (argc != 2){ /* argc should be 2 for correct execution */";
+		lines[line++] = "printf(\"usage: %s string \\n \", argv[0]);";
+		lines[line++] = "} else {";
+		lines[line++] = "printf(\"%s is being processed\\n\", argv[1]);";
+		lines[line++] = "}";
+		lines[line++] = "char * w = argv[1];";
+		lines[line++] = "init();";
+		lines[line++] = "int t = 0;";
+		lines[line++] = "if (!pn0(&t,w) && (t==strlen(w))){";
+		lines[line++] =
+				"printf(\"(The chain of used derivations is upside down)\\n\");";
+		lines[line++] = "printf(\"The string has been accepted\\n\");";
+		lines[line++] = "}else{";
+		lines[line++] = "printf(\"The string has NOT been accepted\\n\");";
+		lines[line++] = "}";
+		lines[line++] = "return 0;";
+		lines[line++] = "}";
+
+		printf("%s", "------------generating init---------------\n");
+
+		/*init*/
+		lines[line++] = "";
+		lines[line++] = "/*initializes all the structures*/";
+		lines[line++] = "void init(){";
+		for (j = 0; j < nonterminalsquant; j++) {
+			ProductionADT * ps = prodsbyNonTerm[j];
+			char buff1[50], buff2[50], buff3[50], buff4[5],buff5[3];
+			int q1, q2, q3, k, l;
+			q1 = sprintf(buff1, "prods%d = malloc(sizeof(ProductionADT*)); ",j);
+			q2 = sprintf(buff2, "prods%dquant = %d;",j, prodsSizes[j]);
+			lines[line] = malloc(sizeof(char)*q1);
+			memcpy(lines[line++], buff1, q1);
+			lines[line] = malloc(sizeof(char)*q2);
+			memcpy(lines[line++], buff2, q2);
+			for (k = 0; k < prodsSizes[j]; k++) {
+				ProductionADT p = ps[k];
+				int symbolquant = getSymbolQuant(p);
+				q3 = sprintf(buff3, "prods%d[%d] = newProduction(%d",j,k,symbolquant);
+				/* prods%d[%d] = newProduction(%d, %c, %c, %c); in buff3 */
+				for (l = 0; l < symbolquant; l++) {
+					char comp = getProductionComponent(p,l);
+					if(comp == '\\'){
+						buff5[0] = '\\';
+						buff5[1] = '\\';
+						buff5[2] = '\0';
+					}else{
+						buff5[0] = comp;
+						buff5[1] = '\0';
+					}
+					sprintf(buff4, ", '%s' ", buff5);
+					strcat(buff3, buff4);
+					q3 += 7;
+				}
+				strcat(buff3, ");");
+				q3 += 2;;
+				lines[line] = malloc(sizeof(char)*q3);
+				memcpy(lines[line++], buff3, q3);
+			}
+		}
+		lines[line++] = "}";
+
+		printf("%s", "------------generating procesar---------------\n");
+
+		/*procesar*/
+		lines[line++] = "";
+		lines[line++] = "/*returns TRUE if there is an error*/";
+		lines[line++] = "int procesar(ProductionADT p, char * w, int * t) {";
+		lines[line++] = "int i;";
+		lines[line++] = "int n = getSymbolQuant(p); /*number of symbols in the right side of the production*/";
+		lines[line++] = "for (i = 1; i < n; i++) {";
+		lines[line++] = "char comp = getProductionComponent(p, i);";
+		lines[line++] = "if (isTerminal(comp)) {";
+		lines[line++] = "if (w[*t] == comp) {";
+		lines[line++] = "(*t) += 1;";
+		lines[line++] = "} else {";
+		lines[line++] = "return TRUE;/*error*/";
+		lines[line++] = "}";
+		lines[line++] = "} else {";
+		lines[line++] = "int error= FALSE;";
+		lines[line++] = "switch(comp){";
+		for (j = 0; j < nonterminalsquant; j++) {
+			char buff1[50], buff2[50], buff3[50];
+			int q1, q2, q3;
+			q1 = sprintf(buff1, "case '%c':",nonterminals[j]);
+			q2 = sprintf(buff2, "error = pn%d(t,w);",j);
+			q3 = sprintf(buff3, "break;");
+			lines[line] = malloc(sizeof(char)*q1);
+			memcpy(lines[line++], buff1, q1);
+			lines[line] = malloc(sizeof(char)*q2);
+			memcpy(lines[line++], buff2, q2);
+			lines[line] = malloc(sizeof(char)*q3);
+			memcpy(lines[line++], buff3, q3);
+		}
+		lines[line++] = "}";
+		lines[line++] = "if (error){";
+		lines[line++] = "return TRUE; /*error*/";
+		lines[line++] = "}";
+		lines[line++] = "}";
+		lines[line++] = "}";
+		lines[line++] = "return FALSE;";
+		lines[line++] = "}";
+
+
+		//TODO: debug
+		printf("%s", "------------procedures generator---------------\n");
+
+		/*procedures for each non terminal*/
+		/*corresponding to S*/
+		lines[line++] = "";
+		for (j = 0; j < nonterminalsquant; j++) {
+			char buff1[50];
+			int q1;
+			lines[line++] = "";
+			q1 = sprintf(buff1, "int pn%d(int * t, char * w) {",j);
+			lines[line] = malloc(sizeof(char)*q1);
+			memcpy(lines[line++], buff1, q1);
+			lines[line++] = "int j;";
+			q1 = sprintf(buff1, "int n = prods%dquant; /*quantity of productions with this terminal*/",j);
+			lines[line] = malloc(sizeof(char)*q1);
+			memcpy(lines[line++], buff1, q1);
+			lines[line++] = "int error = TRUE;";
+			lines[line++] = "for (j = 0; j < n && error; j++) {";
+			q1 = sprintf(buff1, "error = procesar(prods%d[j], w, t);",j);
+			lines[line] = malloc(sizeof(char)*q1);
+			memcpy(lines[line++], buff1, q1);
+			lines[line++] = "if(!error){";
+			q1 = sprintf(buff1, "printProduction(prods%d[j]);",j);
+			lines[line] = malloc(sizeof(char)*q1);
+			memcpy(lines[line++], buff1, q1);
+			lines[line++] = "}";
+			lines[line++] = "}";
+			lines[line++] = "return error;";
+			lines[line++] = "}";
+		}
+
+		//TODO: debug
+		printf("%s", "------------writing file---------------\n");
+
+
+
+
+		//write to file
+		char * delimiter = "\n";
+		for(i=0; i<line;i++){
+			fwrite(lines[i], sizeof(lines[i][0]), strlen(lines[i]), file);
+			fwrite(delimiter,sizeof(delimiter[0]), strlen(delimiter),file);
+		}
 		fclose(file);
 	}
+}
+
+void formalize(GrammarADT grammar){
+
+	/*unitary productions must be removed*/
+	removeUnitaryProductions(grammar);
+	printf("\n AFTER UNITARY1 ----------------------- ");
+	printGrammar(grammar);
+
+	/*unproductive productiones must be removed*/
+	removeUnproductiveProductions(grammar);
+	printf("\n AFTER UNPRODUCTIVE1 ----------------------- ");
+	printGrammar(grammar);
+
+	/*unreachable productions must be deleted*/
+	removeUnreachableProductions(grammar);
+	printf("\n AFTER UNREACHABLE1 ----------------------- ");
+	printGrammar(grammar);
+
+	/*all productions must be in the form A-Ba or A-> /*/
+	removeOnlyRightTerminals(grammar);
+	printf("\n AFTER OnlyRightTerminals ----------------------- ");
+	printGrammar(grammar);
+
+	/*the grammar must be right*/
+	convertToRight(grammar);
+	printf("\n AFTER convertToRight ----------------------- ");
+	printGrammar(grammar);
+
+	/*AGAIN ; unitary productions must be removed*/
+	removeUnitaryProductions(grammar);
+	printf("\n AFTER UNITARY2 ----------------------- ");
+	printGrammar(grammar);
+
+	/*AGAIN : unproductive productiones must be removed*/
+	removeUnproductiveProductions(grammar);
+	printf("\n AFTER UNPRODUCTIVE2 ----------------------- ");
+	printGrammar(grammar);
+
+	/*AGAIN : unreachable productions must be deleted*/
+	removeUnreachableProductions(grammar);
+	printf("\n AFTER UNREACHABLE2 ----------------------- ");
+	printGrammar(grammar);
+
 }
 

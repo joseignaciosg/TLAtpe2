@@ -27,6 +27,7 @@ void freeProductions(ProductionsADT productions);
 /*Getters*/
 int getQuant(ProductionsADT productions);
 ProductionADT getProduction(ProductionsADT productions, int i);
+ProductionADT * getProductionsNonTerminal(ProductionsADT productions, char nonTerminal, int * quant );
 
 /*Setters*/
 void setProduction(ProductionsADT productions, int i, ProductionADT pr);

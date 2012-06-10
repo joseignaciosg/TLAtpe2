@@ -51,7 +51,8 @@ int main(void) {
 	//convertToRightTest();
 	//grammar1Test();
 	//grammar4Test();
-	grammar5Test();
+	//grammar5Test();
+	//printGrammar(g1);
 	generateASDRTest();
 
 	destroy();
@@ -65,43 +66,30 @@ void generateASDRTest() {
 void init() {
 	g1 = newGrammar();
 	setDistinguished(g1, 'S');
-	nonterminals = malloc(sizeof(char) * 5);
+	nonterminals = malloc(sizeof(char) * 44);
 	nonterminals[0] = 'S';
 	nonterminals[1] = 'A';
 	nonterminals[2] = 'B';
 	nonterminals[3] = 'C';
-	nonterminals[4] = 'D';
-	setNonTerminals(g1, nonterminals, 5);
-	term = malloc(sizeof(char) * 2);
+	setNonTerminals(g1, nonterminals, 4);
+	term = malloc(sizeof(char) * 3);
 	term[0] = 'a';
 	term[1] = 'b';
-	setTerminals(g1, term, 2);
+	term[2] = 'c';
+	setTerminals(g1, term, 3);
 
-	/*S-> aA*/
-	p1 = newProduction(3, 'S', 'A', 'b');
-	/*A-> b*/
-	p2 = newProduction(3, 'A', 'b', LAMDA);
-	/*B-> aB*/
-	p7 = newProduction(3, 'B', 'B', 'b');
-	/*A-> bA*/
-	p3 = newProduction(3, 'A', 'B', '\\');
-	/*A-> aB*/
-	p8 = newProduction(3, 'A', 'B', 'a');
-	/*B-> ab*/
-	//p4 = newProduction('B','c','b');
-	/*A-> bB*/
-	//p5 = newProduction('A','b','B');
-	/*A-> aB*/
-	//p6 = newProduction('A',LAMDA,'B');
+	p1 = newProduction(4, 'S', 'a', 'A', 'a');
+	p2 = newProduction(4, 'A', 'b','B','b');
+	p3 = newProduction(4, 'B', 'c','C','c');
+	p4 = newProduction(4, 'B', 'c','S','c');
+	p5 = newProduction(2, 'C', 'a');
 	prods = newProductions(5);
 	setProduction(prods, 0, p1);
 	setProduction(prods, 1, p2);
-	setProduction(prods, 2, p7);
-	setProduction(prods, 3, p3);
-	setProduction(prods, 4, p8);
-//	setProduction(prods,5,p4);
-//	setProduction(prods,6,p5);
-//	setProduction(prods,7,p6);
+	setProduction(prods, 2, p3);
+	setProduction(prods, 3, p4);
+	setProduction(prods, 4, p5);
+
 
 	setProductions(g1, prods);
 }
@@ -315,6 +303,9 @@ void grammar5Test() {
 
 	setProductions(grammar5, productions1);
 
-	printf("Before Nomalization\n");
+	//formalize(grammar5);
 	printGrammar(grammar5);
+	generateASDR(grammar5);
+
+
 }

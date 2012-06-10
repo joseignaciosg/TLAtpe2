@@ -14,14 +14,14 @@
 #include "../include/utils.h"
 
 ProductionADT * prods0;
-ProductionADT * prods1;
 int prods0quant;
+int pn0(int * t, char * w);
+ProductionADT * prods1;
 int prods1quant;
+int pn1(int * t, char * w);
 
 int procesar(ProductionADT p, char * w, int * t);
 void init();
-int pn0(int * t, char * w);
-int pn1(int * t, char * w);
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) /* argc should be 2 for correct execution */
@@ -100,8 +100,8 @@ int pn0(int * t, char * w) {
 		}
 	}
 	return error;
-
 }
+
 /*corresponding to A*/
 int pn1(int * t, char * w) {
 	int j;
