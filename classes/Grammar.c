@@ -564,3 +564,40 @@ char getNewSymbol(GrammarADT grammar){
 	return newsymbol;
 }
 
+static void mainGenerator(GrammarADT grammar, FILE * file){
+
+	char distinguished = getDistinguished(grammar);
+	char * line1 = "if(PN1(t,w) && (t == sizeof(w)-1) ){";
+	char * line2 = "return true;";
+	char * line3 = "}else{return false;}";
+	fwrite(line1, sizeof(line1[0]), sizeof(line1), file);
+	fwrite(line2, sizeof(line2[0]), sizeof(line2), file);
+	fwrite(line3, sizeof(line3[0]), sizeof(line3), file);
+}
+static void processGenerator(GrammarADT grammar, FILE * file){
+
+}
+
+static void proceduresGenerator(GrammarADT grammar, FILE * file){
+
+}
+
+
+
+/*Conversion*/
+void generateASDR(GrammarADT grammar){
+
+	FILE *file;
+	char * name = "ASDR.c";
+	file = fopen(name,"a+");
+
+	int i;
+	/*main generator*/
+	if(file){
+		mainGenerator(grammar, file);
+		processGenerator(grammar, file);
+		proceduresGenerator(grammar, file);
+		fclose(file);
+	}
+}
+
