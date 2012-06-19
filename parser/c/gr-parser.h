@@ -16,6 +16,9 @@
 #define NONE 0
 #define LEFT -1
 #define INIT_QTY 10
+#define NEXT_PROD 0
+#define REPEAT_LEFT 1
+#define END_OF_PRODS 2
 #define is_terminal(X) (islower((X)) || (X) == LAMDA)
 #define is_non_terminal(X) isupper((X))
 #define validate_name() valid_name=true
@@ -52,8 +55,8 @@ void finale(void);
 void process(void);
 void printall(void);
 void set_distinguished(char d);
-void add_production(char * s);
-void add_production2(char le, char * s);
+void new_left_side(char * s, int size);
+int  add_right_side(char * s, int size);
 void add_non_terminal(char * s);
 void add_terminal(char * s);
 void destroy_prod_list(prod_list pl);
@@ -65,4 +68,5 @@ prod_list new_prod_list();
 int exists(char * s, char c, size_t l);
 int is_unitary(prod p);
 void check_gr(void);
+void check_right_side(char * s, int size);
 #endif

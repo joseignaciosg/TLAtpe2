@@ -9,6 +9,7 @@ int nterm_size;
 int nterm_qty;
 static char distinguished;
 static prod_list productions;
+static prod_t * tmp_prod;
 int valid_name, valid_grammar, valid_nt, valid_t, valid_d, valid_p;
 
 int exists(char * s, char c, size_t l) {
@@ -146,48 +147,67 @@ void add_non_terminal(char * s) {
 	}
 }
 
-void add_production2(char le, char * s) {
-	int i, j, k;
-	for (i = 0; s[i] != '\0' && isspace(s[i]); i++);
-	for (j = i; s[j] != '\0' && !(isspace(s[j]) || s[j] != ',' || s[j] != '|' || s[j] != '}' ); j++);
-
-	if( i-j == 1 && s[j] != LAMDA){
-		printf("1Error: Invalid right-side production symbol\n");
-		exit(1);
-	}
-
-	for (k = i; k <= j; k++) {
-		if ((isupper(s[k]) && !exists(terminals, s[k], term_qty))
-				|| (islower(s[k]) && !exists(non_terminals, s[k], nterm_qty))) {
-			printf("1Error: Invalid right-side production symbol\n");
-			exit(1);
-
-		}
-	}
-
-	char * r = malloc(sizeof(char) * (j-i + 1));
-	memcpy(r, s+i, j-i);
-	r[j-1+1] = '\0';
-
-	add_to_list(productions, new_prod(le, r));
-}
-
-void add_production(char * s) {
-	int i;
-	int l = strlen(s);
-	for (i = 0; i < l && isspace(s[i]); i++)
-		;
-	char le = s[i];
-	if (islower(le) || !exists(non_terminals, s[i], nterm_qty)) {
+void new_left_side(char * s, int size)
+{
+	tmp_prod = malloc(sizeof(prod_t));
+	tmp_prod->left = s[size-1];
+	if(!exists(non_terminals, tmp_prod->left, nterm_qty))
+	{
 		printf("Error: Invalid left-side production symbol\n");
 		exit(1);
 	}
-	for (i = i + 1; i < l && isspace(s[i]); i++)
-		;
-	for (i = i + 1; i < l && isspace(s[i]); i++)
-		;
-	add_production2(le, s + i + 1);
+}
 
+int add_right_side(char * s, int size)
+{
+	int ret = (s[size-1] == ',')? NEXT_PROD : ((s[size-1] == '|')? REPEAT_LEFT : END_OF_PRODS);
+
+	int i, j;
+
+	for(i = 0; i < size && isspace(s[i]); i++);
+	for(j = size-2; j > 0 && isspace(s[i]); j--);
+
+	char * right = malloc(sizeof(char) * (j-i+1));
+
+	memcpy(right, s+i, j-i);
+
+	right[j-i+1] = '\0';
+
+	check_right_side(right, j-1+1);
+
+	tmp_prod->right = right;
+
+
+	add_to_list(productions, tmp_prod);
+
+	if(ret == END_OF_PRODS)
+	{
+		tmp_prod = NULL;
+	}
+	else
+	{
+		prod_t * aux = malloc(sizeof(prod_t));
+		if(ret == REPEAT_LEFT)
+		{
+			aux->left = tmp_prod->left;
+		}
+		tmp_prod = aux;
+	}
+
+	return ret;
+}
+
+void check_right_side(char * s, int size)
+{
+	int i;
+	for(i=0; i < size; i++)
+	{
+		if((isupper(s[i]) && !exists(non_terminals, s[i], nterm_qty))
+				|| (islower(s[i]) && !exists(terminals, s[i], term_qty))){
+			printf("Error: No valid symbol recognized in the production's right-side\n");
+			exit(1);
+		}
+	}
 }
 
 void set_distinguished(char d){
@@ -195,6 +215,7 @@ void set_distinguished(char d){
 }
 
 void init() {
+	tmp_prod = NULL;
 	term_size = INIT_QTY;
 	term_qty = 0;
 	terminals = malloc(term_size * sizeof(char));
@@ -273,21 +294,7 @@ void process() {
 
 	check_gr();
 	
-	printf("Grammar: \n Terminals: ");
-	int i;
-	for(i=0; i<term_qty; i++){
-		printf("%c", terminals[i]);
-	}
-	printf("\nNon-Terminals: ");
-	for(i=0; i<term_qty; i++){
-			printf("%c ", non_terminals[i]);
-	}
-	printf("\nDistinguished: %c\n", distinguished);
-	printf("Productions:\n");
-	prod_t * p;
-	for(p = productions->head; p != NULL; p = p->next){
-		printf("%c -> %s", p->left, p->right);
-	}
+	printall();
 
 //	GrammarADT gr = newGrammar();
 //
