@@ -167,13 +167,13 @@ int add_right_side(char * s, int size)
 	for(i = 0; i < size && isspace(s[i]); i++);
 	for(j = size-2; j > 0 && isspace(s[i]); j--);
 
-	char * right = malloc(sizeof(char) * (j-i+1));
+	char * right = malloc(sizeof(char) * (j-i+2));
 
-	memcpy(right, s+i, j-i);
+	memcpy(right, s+i, j-i+1);
 
-	right[j-i+1] = '\0';
+	right[j-i+2] = '\0';
 
-	check_right_side(right, j-1+1);
+	check_right_side(right, j-1+2);
 
 	tmp_prod->right = right;
 

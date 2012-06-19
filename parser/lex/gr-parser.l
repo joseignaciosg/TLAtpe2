@@ -25,7 +25,7 @@ number [0-9]
 grammar_name [a-zA-Z][a-zA-Z0-9]*
 lamda \\
 valid_left_side {non_terminal}
-valid_right_side ({lamda}|([{terminal}{non_terminal}]+))
+valid_right_side ({lamda}|([a-zA-Z]+))
 %%
 <INITIAL>{space}*{grammar_name}{space}*={space}*\(	{
 								printf("grammar recognized!\n");
@@ -69,17 +69,14 @@ valid_right_side ({lamda}|([{terminal}{non_terminal}]+))
 								yytext[1]='\0';
 								BEGIN(TO_PR);}
 <TO_PR>{space}*,{space}*\{			{
-							printf("to production\n");
 							validate_distinguished();
 							BEGIN(PROD_LEFT);
 						}
 <PROD_LEFT>{space}*{valid_left_side}		{
-							printf("left side found\n");
 							new_left_side(yytext, yyleng);
 							BEGIN(L_TO_R);
 						}
 <L_TO_R>{space}*\-{space}*\>			{
-							printf("arrow!\n");
 							BEGIN(PROD_RIGHT);
 						}
 <PROD_RIGHT>{space}*{valid_right_side}{space}*[,\|\}]	{
