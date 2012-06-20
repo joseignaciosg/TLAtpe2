@@ -101,8 +101,19 @@ valid_right_side ({lamda}|([a-zA-Z]+))
 <ERROR>.{space}*	;
 %%
 
-int main()
+int main(int argc, char * argv[])
 {
+	if(argc != 2)
+	{
+		printf("You must provide one and only one path to read from\n");
+		exit(1);
+	}
+	if((yyin = fopen(argv[1], "r")) == NULL)
+	{
+		printf("ERROR: File not found!\n");
+		exit(1);
+	}
+	
 	init();
 	yylex();
 	process();
