@@ -8,24 +8,15 @@
 # include "../include/Production.h"
 
 /*Constructor-destructor*/
-ProductionADT newProduction(int num, ...){
+ProductionADT newProduction(char left, char * right){
 	ProductionADT p = malloc(sizeof(struct Production));
-	p->production = malloc(sizeof(char)* num);
-	p->symbolsquant = num;
-	va_list ap;
-	va_start(ap, num);
-	int i=0;
-	char symbol;
-	while(i<num){
-		symbol = va_arg(ap,int);
-		setProductionComponent(p,i,symbol);
-		i++;
-	}
-	void va_end(va_list ap);
+	p->left = left;
+	p->right = right;
+	p->symbolsquant = strlen(right)+1;
 	return p;
 }
 void freeProduction(ProductionADT p){
-	free(p->production);
+	free(p->right);
 	free(p);
 }
 
@@ -34,7 +25,7 @@ char getProductionComponent(ProductionADT p, int i){
 	if(i < 0 ||i >= getSymbolQuant(p)){
 		return -1;
 	}
-	return p->production[i];
+	return (i == 0)? p->left : p->right[i-1];
 }
 int getSymbolQuant(ProductionADT p){
 	return p->symbolsquant;
@@ -44,7 +35,14 @@ int getSymbolQuant(ProductionADT p){
 /*Setters*/
 void setProductionComponent(ProductionADT p, int i, char comp){
 	if(i >= 0 ||i < getSymbolQuant(p)){
-		p->production[i] = comp;
+		if(i == 0)
+		{
+			p->left = comp;
+		}
+		else
+		{
+			p->right[i-1] = comp;
+		}
 	}else{
 		fprintf(stderr, "Index out of bound");
 	}
@@ -53,13 +51,9 @@ void setProductionComponent(ProductionADT p, int i, char comp){
 
 /*Utility*/
 void printProduction(ProductionADT p){
-	int i;
-	printf("\t %c -> ",p->production[0]);
-	for (i=1; i< p->symbolsquant; i++){
-		printf("%c",p->production[i]);
-	}
-	printf("\n");
+	printf("\t %c -> %s\n",p->left, p->right);
 }
+
 int equals(ProductionADT p1, ProductionADT p2){
 	int i;
 	if(getSymbolQuant(p1) != getSymbolQuant(p2)){
@@ -81,4 +75,11 @@ int isUnitary(ProductionADT p){
 		return 1;
 	}
 	return 0;
+}
+
+char getLeftSide(ProductionADT p){
+	return p->left;
+}
+char * getRightSide(ProductionADT p){
+	return p->right;
 }

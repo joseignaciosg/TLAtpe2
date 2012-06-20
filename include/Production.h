@@ -15,18 +15,21 @@
 #define PRODSIZE 3
 
 typedef struct Production{
+	char left;
+	char * right;
 	int symbolsquant;
-	char * production;
 }Production;
 
 typedef struct Production * ProductionADT;
 
 
 /*Constructor-destructor*/
-ProductionADT newProduction(int num, ...);
+ProductionADT newProduction(char left, char * right);
 void freeProduction(ProductionADT p);
 
 /*Getters*/
+char getLeftSide(ProductionADT p);
+char * getRightSide(ProductionADT p);
 char getProductionComponent(ProductionADT p, int i);
 int getSymbolQuant(ProductionADT p);
 
@@ -43,7 +46,6 @@ void setProductionComponent(ProductionADT p, int i, char comp);
 void printProduction(ProductionADT p);
 int equals(ProductionADT p1, ProductionADT p2);
 int isUnitary(ProductionADT p);
-
 
 /*Conversion*/
 /*DerivationADT toDerivation(ProductionADT p);*/

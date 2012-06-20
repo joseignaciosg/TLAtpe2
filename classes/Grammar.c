@@ -137,8 +137,11 @@ void removeUnitaryProductions(GrammarADT grammar) {
 						char third2 = getProductionComponent(p2, 2);
 						if (!isUnitary(p2)) {
 							if (first2 == uni2) {
+								char * r = malloc(sizeof(char)*2);
+								r[0] = sec2;
+								r[1] = third2;
 								addProduction(productions,
-										newProduction(first1, sec2, third2));
+										newProduction(first1, r));
 							}
 						}
 					}
@@ -346,8 +349,10 @@ void removeOnlyRightTerminals(GrammarADT grammar) {
 		}
 	}
 
+	char * r = malloc(sizeof(char)*2);
+	r[0] = r[1] = LAMDA;
 	addProduction(getProductions(grammar),
-			newProduction(newsymbol, LAMDA, LAMDA));
+			newProduction(newsymbol, r));
 
 	/*remove non terminals and terminals that are no longer there */
 	actualizeTerminals(grammar);
@@ -375,7 +380,10 @@ void convertToRight(GrammarADT grammar) {
 		char sec = getProductionComponent(p1, 1);
 		char third = getProductionComponent(p1, 2);
 		if (isNonTerminal(sec)) {
-			addProduction(productions, newProduction(sec, third, first));
+			char * r = malloc(sizeof(char)*2);
+			r[0] = third;
+			r[1] = first;
+			addProduction(productions, newProduction(sec, r));
 			removeParticularProduction(productions, p1);
 		}
 	}
@@ -399,8 +407,10 @@ void convertToRight(GrammarADT grammar) {
 	setDistinguished(grammar, newsymbol);
 	/*generate new unitary productions*/
 	for (i = 0; i < size; i++) {
-		ProductionADT newprod = newProduction(newsymbol, leftnontermssymbols[i],
-				LAMDA);
+		char * r = malloc(sizeof(char)*2);
+		r[0] = leftnontermssymbols[i];
+		r[1] = LAMDA;
+		ProductionADT newprod = newProduction(newsymbol, r);
 		//printProduction(newprod);
 		addProduction(productions, newprod);
 	}
@@ -415,7 +425,9 @@ void convertToRight(GrammarADT grammar) {
 		}
 	}
 	if (!ml) {
-		addProduction(productions, newProduction(oldistiguished, LAMDA, LAMDA));
+		char * r = malloc(sizeof(char)*2);
+		r[0] = r[1] = LAMDA;
+		addProduction(productions, newProduction(oldistiguished, r));
 	}
 
 	setProductions(grammar, productions);
@@ -601,12 +613,7 @@ void generateASDR(GrammarADT grammar) {
 
 	FILE *file;
 	char * name = "ASDR.c";
-	file = fopen(name, "a+");
-	if(!file) {
-		remove(name);
-		file = fopen(name, "a+");
-	}
-	char ** lines = malloc(sizeof(char*) * 500);
+	file = fopen(name, "w+");
 	char * nonterminals = getNonTerminals(grammar);
 	int nonterminalsquant = getQuantNonTerminals(grammar);
 	ProductionsADT productions = getProductions(grammar);
@@ -621,189 +628,118 @@ void generateASDR(GrammarADT grammar) {
 
 	printf("%s\n", "STARTING FILE CREATION");
 
-	int line = 0;
 	/*main generator*/
 	if (file) {
 
-		printf("%s", "------------generating headers---------------\n");
-
-		lines[line++] = "#define  TRUE 1";
-		lines[line++] = "#define  FALSE 0";
-		lines[line++] = "#include <stdio.h>";
-		lines[line++] = "#include <stdlib.h>";
-		lines[line++] = "#include <string.h>";
-		lines[line++] = "#include \"../include/Production.h\"";
-		lines[line++] = "#include \"../include/utils.h\"";
+		printf("------------generating headers---------------\n");
+		fprintf(file, "#include <stdio.h>\n");
+		fprintf(file, "#include <stdlib.h>\n");
+		fprintf(file, "#include <string.h>\n");
+		fprintf(file, "#include \"include/Production.h\"\n");
+		fprintf(file, "#include \"include/utils.h\"\n");
+		fprintf(file, "#define TRUE 1\n");
+		fprintf(file, "#define FALSE 0\n");
 
 		int j;
 		for (j = 0; j < getQuantNonTerminals(grammar); j++) {
-			char buff1[50], buff2[50], buff3[50];
-			int q1, q2, q3;
-			q1 = sprintf(buff1, "ProductionADT * prods%d;",j);
-			q2 = sprintf(buff2, "int prods%dquant;",j);
-			q3 = sprintf(buff3, "int pn%d(int * t, char * w);",j);
-			lines[line] = malloc(sizeof(char)*q1);
-			memcpy(lines[line++], buff1, q1);
-			lines[line] = malloc(sizeof(char)*q2);
-			memcpy(lines[line++], buff2, q2);
-			lines[line] = malloc(sizeof(char)*q3);
-			memcpy(lines[line++], buff3, q3);
+			fprintf(file, "ProductionADT * prods%d;\n", j);
+			fprintf(file, "int prods%dquant;\n", j);
+			fprintf(file, "int pn%d(int *, char * w);\n",j);
 		}
-		lines[line++] = "int procesar(ProductionADT p, char * w, int * t);";
-		lines[line++] = "void init();";
+		fprintf(file, "int procesar(ProductionADT p, char * w, int * t);\n");
+		fprintf(file, "void init();\n");
 
-		printf("%s", "------------generating main---------------\n");
+		printf("------------generating main---------------\n");
 
+		fprintf(file, "\nint main(int argc, char *argv[]) {\n");
+		fprintf(file, "\tif(argc!=2) { /* argc should be 2 for correct execution*/\n");
+		fprintf(file, "\t\tprintf(\"usage : %%s string \\n \", argv[0]);\n");
+		fprintf(file, "\t\texit(1);\n");
+		fprintf(file, "\t} else {\n");
+		fprintf(file, "\t\tprintf(\"%%s is being processed\\n\", argv[1]);\n\t}\n");
+		fprintf(file, "\tchar * w = argv[1];\n");
+		fprintf(file, "\tinit();\n");
+		fprintf(file, "\tint t = 0;\n");
+		fprintf(file, "\tif(!pn0(&t,w) && (t==strlen(w))){\n");
+		fprintf(file, "\t\tprintf(\"(The chain of used derivations is upside down)\\n\");\n");
+		fprintf(file, "\t\tprintf(\"The string has been accepted \\n\");\n");
+		fprintf(file, "\t} else {\n");
+		fprintf(file, "\t\tprintf(\"The string has NOT been accepted\\n\");\n");
+		fprintf(file, "\t}\n");
+		fprintf(file, "\treturn 0;\n");
+		fprintf(file, "}\n");
 		/*main*/
-		lines[line++] = "";
-		lines[line++] = "int main(int argc, char *argv[]) {";
-		lines[line++] = "if (argc != 2){ /* argc should be 2 for correct execution */";
-		lines[line++] = "printf(\"usage: %s string \\n \", argv[0]);";
-		lines[line++] = "} else {";
-		lines[line++] = "printf(\"%s is being processed\\n\", argv[1]);";
-		lines[line++] = "}";
-		lines[line++] = "char * w = argv[1];";
-		lines[line++] = "init();";
-		lines[line++] = "int t = 0;";
-		lines[line++] = "if (!pn0(&t,w) && (t==strlen(w))){";
-		lines[line++] =
-				"printf(\"(The chain of used derivations is upside down)\\n\");";
-		lines[line++] = "printf(\"The string has been accepted\\n\");";
-		lines[line++] = "}else{";
-		lines[line++] = "printf(\"The string has NOT been accepted\\n\");";
-		lines[line++] = "}";
-		lines[line++] = "return 0;";
-		lines[line++] = "}";
 
-		printf("%s", "------------generating init---------------\n");
+		printf("------------generating init---------------\n");
 
 		/*init*/
-		lines[line++] = "";
-		lines[line++] = "/*initializes all the structures*/";
-		lines[line++] = "void init(){";
+
+		fprintf(file, "\n/*initializes all the structures*/\n");
+		fprintf(file, "void init(){\n");
+
 		for (j = 0; j < nonterminalsquant; j++) {
 			ProductionADT * ps = prodsbyNonTerm[j];
-			char buff1[50], buff2[50], buff3[50], buff4[5],buff5[3];
-			int q1, q2, q3, k, l;
-			q1 = sprintf(buff1, "prods%d = malloc(sizeof(ProductionADT*)); ",j);
-			q2 = sprintf(buff2, "prods%dquant = %d;",j, prodsSizes[j]);
-			lines[line] = malloc(sizeof(char)*q1);
-			memcpy(lines[line++], buff1, q1);
-			lines[line] = malloc(sizeof(char)*q2);
-			memcpy(lines[line++], buff2, q2);
+			fprintf(file, "\tprods%d = malloc(sizeof(ProductionADT*) * %d);\n",j, prodsSizes[j]);
+			fprintf(file, "\tprods%dquant = %d;\n", j, prodsSizes[j]);
+			int k;
 			for (k = 0; k < prodsSizes[j]; k++) {
 				ProductionADT p = ps[k];
-				int symbolquant = getSymbolQuant(p);
-				q3 = sprintf(buff3, "prods%d[%d] = newProduction(%d",j,k,symbolquant);
-				/* prods%d[%d] = newProduction(%d, %c, %c, %c); in buff3 */
-				for (l = 0; l < symbolquant; l++) {
-					char comp = getProductionComponent(p,l);
-					if(comp == '\\'){
-						buff5[0] = '\\';
-						buff5[1] = '\\';
-						buff5[2] = '\0';
-					}else{
-						buff5[0] = comp;
-						buff5[1] = '\0';
-					}
-					sprintf(buff4, ", '%s' ", buff5);
-					strcat(buff3, buff4);
-					q3 += 7;
-				}
-				strcat(buff3, ");");
-				q3 += 2;;
-				lines[line] = malloc(sizeof(char)*q3);
-				memcpy(lines[line++], buff3, q3);
+				fprintf(file, "\tprods%d[%d] = newProduction(\'%c\', \"%s\");\n", j, k, getLeftSide(p), getRightSide(p));
 			}
 		}
-		lines[line++] = "}";
+		fprintf(file, "}\n");
 
-		printf("%s", "------------generating procesar---------------\n");
+		printf("------------generating procesar---------------\n");
 
 		/*procesar*/
-		lines[line++] = "";
-		lines[line++] = "/*returns TRUE if there is an error*/";
-		lines[line++] = "int procesar(ProductionADT p, char * w, int * t) {";
-		lines[line++] = "int i;";
-		lines[line++] = "int n = getSymbolQuant(p); /*number of symbols in the right side of the production*/";
-		lines[line++] = "for (i = 1; i < n; i++) {";
-		lines[line++] = "char comp = getProductionComponent(p, i);";
-		lines[line++] = "if (isTerminal(comp)) {";
-		lines[line++] = "if (w[*t] == comp) {";
-		lines[line++] = "(*t) += 1;";
-		lines[line++] = "} else {";
-		lines[line++] = "return TRUE;/*error*/";
-		lines[line++] = "}";
-		lines[line++] = "} else {";
-		lines[line++] = "int error= FALSE;";
-		lines[line++] = "switch(comp){";
+		fprintf(file, "\n/*returns TRUE if there is an error*/\n");
+		fprintf(file, "int procesar(ProductionADT p, char * w, int * t) {\n");
+		fprintf(file, "\tint i;\n");
+		fprintf(file, "\tint n = getSymbolQuant(p); /*number of symbols in the right side of the production*/\n");
+		fprintf(file, "\tfor (i = 1; i < n; i++) {\n");
+		fprintf(file, "\t\tchar comp = getProductionComponent(p, i);\n");
+		fprintf(file, "\t\tif (isTerminal(comp)) {\n");
+		fprintf(file, "\t\t\tif (w[*t] == comp) {\n");
+		fprintf(file, "\t\t\t\t(*t) += 1;\n");
+		fprintf(file, "\t\t\t} else {\n");
+		fprintf(file, "\t\t\t\treturn TRUE;/*error*/\n\t\t\t}\n");
+		fprintf(file, "\t\t} else {\n");
+		fprintf(file, "\t\t\tint error= FALSE;\n");
+		fprintf(file, "\t\t\tswitch(comp){\n");
+
 		for (j = 0; j < nonterminalsquant; j++) {
-			char buff1[50], buff2[50], buff3[50];
-			int q1, q2, q3;
-			q1 = sprintf(buff1, "case '%c':",nonterminals[j]);
-			q2 = sprintf(buff2, "error = pn%d(t,w);",j);
-			q3 = sprintf(buff3, "break;");
-			lines[line] = malloc(sizeof(char)*q1);
-			memcpy(lines[line++], buff1, q1);
-			lines[line] = malloc(sizeof(char)*q2);
-			memcpy(lines[line++], buff2, q2);
-			lines[line] = malloc(sizeof(char)*q3);
-			memcpy(lines[line++], buff3, q3);
+			fprintf(file, "\t\t\tcase '%c':\n", nonterminals[j]);
+			fprintf(file, "\t\t\t\terror = pn%d(t,w);\n", j);
+			fprintf(file, "\t\t\t\tbreak;\n");
 		}
-		lines[line++] = "}";
-		lines[line++] = "if (error){";
-		lines[line++] = "return TRUE; /*error*/";
-		lines[line++] = "}";
-		lines[line++] = "}";
-		lines[line++] = "}";
-		lines[line++] = "return FALSE;";
-		lines[line++] = "}";
+		fprintf(file, "\t\t\t}\n");
+		fprintf(file, "\t\t\tif(error){\n");
+		fprintf(file, "\t\t\t\treturn TRUE;\n");
+		fprintf(file, "\t\t\t}\n\t\t}\n\t}\n");
+		fprintf(file, "\treturn FALSE;\n}\n");
 
 
 		//TODO: debug
-		printf("%s", "------------procedures generator---------------\n");
+		printf("------------procedures generator---------------\n");
 
 		/*procedures for each non terminal*/
 		/*corresponding to S*/
-		lines[line++] = "";
 		for (j = 0; j < nonterminalsquant; j++) {
-			char buff1[50];
-			int q1;
-			lines[line++] = "";
-			q1 = sprintf(buff1, "int pn%d(int * t, char * w) {",j);
-			lines[line] = malloc(sizeof(char)*q1);
-			memcpy(lines[line++], buff1, q1);
-			lines[line++] = "int j;";
-			q1 = sprintf(buff1, "int n = prods%dquant; /*quantity of productions with this terminal*/",j);
-			lines[line] = malloc(sizeof(char)*q1);
-			memcpy(lines[line++], buff1, q1);
-			lines[line++] = "int error = TRUE;";
-			lines[line++] = "for (j = 0; j < n && error; j++) {";
-			q1 = sprintf(buff1, "error = procesar(prods%d[j], w, t);",j);
-			lines[line] = malloc(sizeof(char)*q1);
-			memcpy(lines[line++], buff1, q1);
-			lines[line++] = "if(!error){";
-			q1 = sprintf(buff1, "printProduction(prods%d[j]);",j);
-			lines[line] = malloc(sizeof(char)*q1);
-			memcpy(lines[line++], buff1, q1);
-			lines[line++] = "}";
-			lines[line++] = "}";
-			lines[line++] = "return error;";
-			lines[line++] = "}";
+			fprintf(file, "\nint pn%d(int *t, char * w) {\n", j);
+			fprintf(file, "\tint j;\n");
+			fprintf(file, "\tint n = prods%dquant; /*quantity of productions with this termina */\n", j);
+			fprintf(file, "\tint error = TRUE;\n");
+			fprintf(file, "\tfor(j = 0; j < n && error; j++) {\n");
+			fprintf(file, "\t\terror = procesar(prods%d[j], w, t);\n", j);
+			fprintf(file, "\t\tif(!error){\n");
+			fprintf(file, "\t\t\tprintProduction(prods%d[j]);\n", j);
+			fprintf(file, "\t\t}\n\t}\n");
+			fprintf(file, "\treturn error;\n}\n");
 		}
 
 		//TODO: debug
-		printf("%s", "------------writing file---------------\n");
+		printf("------------writing file---------------\n");
 
-
-
-
-		//write to file
-		char * delimiter = "\n";
-		for(i=0; i<line;i++){
-			fwrite(lines[i], sizeof(lines[i][0]), strlen(lines[i]), file);
-			fwrite(delimiter,sizeof(delimiter[0]), strlen(delimiter),file);
-		}
 		fclose(file);
 	}
 }
@@ -851,4 +787,3 @@ void formalize(GrammarADT grammar){
 	printGrammar(grammar);
 
 }
-

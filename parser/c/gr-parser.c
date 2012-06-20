@@ -73,7 +73,7 @@ void destroy_prod(prod p) {
 	if (p == NULL) {
 		return;
 	}
-	free(p->right);
+//	free(p->right);
 	free(p);
 }
 
@@ -296,29 +296,29 @@ void process() {
 	
 	printall();
 
-//	GrammarADT gr = newGrammar();
-//
-//	setTerminals(gr, terminals, term_qty);
-//	setNonTerminals(gr, non_terminals, nterm_qty);
-//	setDistinguished(gr, distinguished);
-//
-//	ProductionsADT ps = newProductions(0);
-//
-//	prod p = NULL;
-//	for (p = productions->head; p != NULL; p = p->next) {
-//		addProduction(ps, newProduction(p->left, p->right[0], p->right[1]));
-//	}
-//
-//	setProductions(gr, ps);
-//
-//	printf("Grammar before Conversion\n");
-//	printGrammar(gr);
-//
-//	formalize(gr);
-//	generateASDR(gr);
-//
-//	printf("Grammar after Conversion\n");
-//	printGrammar(gr);
+	GrammarADT gr = newGrammar();
+
+	setTerminals(gr, terminals, term_qty);
+	setNonTerminals(gr, non_terminals, nterm_qty);
+	setDistinguished(gr, distinguished);
+
+	ProductionsADT ps = newProductions(0);
+
+	prod p = NULL;
+	for (p = productions->head; p != NULL; p = p->next) {
+		addProduction(ps, newProduction(p->left, p->right));
+	}
+
+	setProductions(gr, ps);
+
+	printf("Grammar before Conversion\n");
+	printGrammar(gr);
+
+	formalize(gr);
+	generateASDR(gr);
+
+	printf("Grammar after Conversion\n");
+	printGrammar(gr);
 
 }
 

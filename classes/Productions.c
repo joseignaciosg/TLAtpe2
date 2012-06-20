@@ -23,6 +23,7 @@ void freeProductions(ProductionsADT  productions){
 int  getQuant(ProductionsADT productions){
 	return productions->n;
 }
+
 ProductionADT getProduction(ProductionsADT productions, int i){
 	return productions->productions[i];
 }
