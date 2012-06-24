@@ -224,36 +224,27 @@ void removeUnreachableProductions(GrammarADT grammar) {
 	while (reachablesquant != lastreachablesquant) {
 		lastreachablesquant = reachablesquant;
 		for (i = 0; i < quantproductions; i++) {
+			int j=1;
+			char nextS;
 			char first = getProductionComponent(getProduction(productions, i),
-					0);
-			char sec = getProductionComponent(getProduction(productions, i), 1);
-			char third = getProductionComponent(getProduction(productions, i),
-					2);
-			/*if the symbol of the left is contained in the reachables, the non terminal
-			 * symbols of the right must be added*/
+								0);
 			if (containsChar(reachables, reachablesquant, first)) {
-				/*if the second symbol is nonterminal and is not yet in the
-				 * reachable list, it must be added*/
-				if (isNonTerminal(sec)
-						&& !containsChar(reachables, reachablesquant, sec)) {
-					if ((aux1 = realloc(reachables,
-							sizeof(char) * (reachablesquant + 1))) == NULL) {
-						fprintf(stderr, "Error doing realloc \n");
-					}
-					reachables = aux1;
-					reachables[reachablesquant++] = sec;
-				}/*if the third symbol is nonterminal and is not yet in the
-				 * reachable list, it must be added*/
-				else if (isNonTerminal(third)
-						&& !containsChar(reachables, reachablesquant, third)) {
-					if ((aux1 = realloc(reachables,
-							sizeof(char) * (reachablesquant + 1))) == NULL) {
-						fprintf(stderr, "Error doing realloc \n");
-					}
-					reachables = aux1;
-					reachables[reachablesquant++] = third;
+				for(;getProductionComponent(getProduction(productions, i),
+						j)!=-1;j++){
+					nextS=getProductionComponent(getProduction(productions, i),
+							j);
+					if (isNonTerminal(nextS)
+											&& !containsChar(reachables, reachablesquant, nextS)) {
+										if ((aux1 = realloc(reachables,
+												sizeof(char) * (reachablesquant + 1))) == NULL) {
+											fprintf(stderr, "Error doing realloc \n");
+										}
+										reachables = aux1;
+										reachables[reachablesquant++] = nextS;
+									}
 				}
 			}
+
 		}
 	}
 	/*TODO: delete debug printf*/
@@ -492,15 +483,13 @@ void actualizeTerminals(GrammarADT grammar) {
 	/*detect current terminals*/
 	for (i = 0; i < productionquant; i++) {
 		ProductionADT p = getProduction(productions, i);
-		char sec = getProductionComponent(p, 1);
-		char third = getProductionComponent(p, 2);
-		if (isTerminal(sec)
-				&& !containsChar(termsfounded, termsfoundedsize, sec)) {
-			addChar(&termsfounded, &termsfoundedsize, sec);
-		}
-		if (isTerminal(third)
-				&& !containsChar(termsfounded, termsfoundedsize, third)) {
-			addChar(&termsfounded, &termsfoundedsize, third);
+		int j=1;
+		char aux;
+		for(;(aux=getProductionComponent(p, j))!=-1;j++){
+			if (isTerminal(aux)
+							&& !containsChar(termsfounded, termsfoundedsize, aux)) {
+						addChar(&termsfounded, &termsfoundedsize, aux);
+					}
 		}
 	}
 	/*actualize terminals*/
@@ -511,7 +500,7 @@ void actualizeTerminals(GrammarADT grammar) {
 }
 
 void actualizeNonTerminals(GrammarADT grammar) {
-	int nontermquant = getQuantTerminals(grammar);
+	int nontermquant = getQuantNonTerminals(grammar);
 	char * nontermsfounded = NULL;
 	int nontermsfoundedsize = 0;
 	ProductionsADT productions = getProductions(grammar);
@@ -519,20 +508,13 @@ void actualizeNonTerminals(GrammarADT grammar) {
 	/*detect current non terminals*/
 	for (i = 0; i < productionquant; i++) {
 		ProductionADT p = getProduction(productions, i);
-		char first = getProductionComponent(p, 0);
-		char sec = getProductionComponent(p, 1);
-		char third = getProductionComponent(p, 2);
-		if (isNonTerminal(first)
-				&& !containsChar(nontermsfounded, nontermsfoundedsize, first)) {
-			addChar(&nontermsfounded, &nontermsfoundedsize, first);
-		}
-		if (isNonTerminal(sec)
-				&& !containsChar(nontermsfounded, nontermsfoundedsize, sec)) {
-			addChar(&nontermsfounded, &nontermsfoundedsize, sec);
-		}
-		if (isNonTerminal(third)
-				&& !containsChar(nontermsfounded, nontermsfoundedsize, third)) {
-			addChar(&nontermsfounded, &nontermsfoundedsize, third);
+		int j=0;
+		char aux;
+		for(;(aux=getProductionComponent(p, j))!=-1;j++){
+			if (isNonTerminal(aux)
+							&& !containsChar(nontermsfounded, nontermsfoundedsize, aux)) {
+						addChar(&nontermsfounded, &nontermsfoundedsize, aux);
+					}
 		}
 	}
 	/*actualize non terminals*/
@@ -684,7 +666,7 @@ void generateASDR(GrammarADT grammar) {
 			int k;
 			for (k = 0; k < prodsSizes[j]; k++) {
 				ProductionADT p = ps[k];
-				fprintf(file, "\tprods%d[%d] = newProduction(\'%c\', \"%s\");\n", j, k, getLeftSide(p), getRightSide(p));
+				fprintf(file, "\tprods%d[%d] = newProduction(\'%c\', \"%s\");\n", j, k, getLeftSide(p), ((getRightSide(p))[0]=='\\'?"\\\\":getRightSide(p)));
 			}
 		}
 		fprintf(file, "}\n");
@@ -727,7 +709,7 @@ void generateASDR(GrammarADT grammar) {
 		for (j = 0; j < nonterminalsquant; j++) {
 			fprintf(file, "\nint pn%d(int *t, char * w) {\n", j);
 			fprintf(file, "\tint j;\n");
-			fprintf(file, "\tint n = prods%dquant; /*quantity of productions with this termina */\n", j);
+			fprintf(file, "\tint n = prods%dquant; /*quantity of productions with this terminal */\n", j);
 			fprintf(file, "\tint error = TRUE;\n");
 			fprintf(file, "\tfor(j = 0; j < n && error; j++) {\n");
 			fprintf(file, "\t\terror = procesar(prods%d[j], w, t);\n", j);
