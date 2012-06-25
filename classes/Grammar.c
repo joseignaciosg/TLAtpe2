@@ -666,7 +666,13 @@ void generateASDR(GrammarADT grammar) {
 			int k;
 			for (k = 0; k < prodsSizes[j]; k++) {
 				ProductionADT p = ps[k];
-				fprintf(file, "\tprods%d[%d] = newProduction(\'%c\', \"%s\");\n", j, k, getLeftSide(p), ((getRightSide(p))[0]=='\\'?"\\\\":getRightSide(p)));
+				char* rside = getRightSide(p);
+				int l=0;
+				while(isTerminal(rside[l]) || isNonTerminal(rside[l])) l++;
+				char aux = rside[l];
+				if(rside[0]!='\\') rside[l]=0;
+				fprintf(file, "\tprods%d[%d] = newProduction(\'%c\', \"%s\");\n", j, k, getLeftSide(p), (rside[0]=='\\'?"\\\\":rside));
+				rside[l]=aux;
 			}
 		}
 		fprintf(file, "}\n");
@@ -729,9 +735,9 @@ void generateASDR(GrammarADT grammar) {
 void formalize(GrammarADT grammar){
 
 	/*unitary productions must be removed*/
-	removeUnitaryProductions(grammar);
-	printf("\n AFTER UNITARY1 ----------------------- ");
-	printGrammar(grammar);
+//	removeUnitaryProductions(grammar);
+//	printf("\n AFTER UNITARY1 ----------------------- ");
+//	printGrammar(grammar);
 
 	/*unproductive productiones must be removed*/
 	removeUnproductiveProductions(grammar);
@@ -748,15 +754,11 @@ void formalize(GrammarADT grammar){
 	printf("\n AFTER OnlyRightTerminals ----------------------- ");
 	printGrammar(grammar);
 
-	/*the grammar must be right*/
-	convertToRight(grammar);
-	printf("\n AFTER convertToRight ----------------------- ");
-	printGrammar(grammar);
 
 	/*AGAIN ; unitary productions must be removed*/
-	removeUnitaryProductions(grammar);
-	printf("\n AFTER UNITARY2 ----------------------- ");
-	printGrammar(grammar);
+//	removeUnitaryProductions(grammar);
+//	printf("\n AFTER UNITARY2 ----------------------- ");
+//	printGrammar(grammar);
 
 	/*AGAIN : unproductive productiones must be removed*/
 	removeUnproductiveProductions(grammar);
